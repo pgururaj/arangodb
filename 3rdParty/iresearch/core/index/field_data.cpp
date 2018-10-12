@@ -568,13 +568,8 @@ void field_data::add_term(
       }
     }
   } else { // exists in current doc
-<<<<<<< HEAD
-    max_term_freq_ = std::max( ++p.freq, max_term_freq_ );
-    if ( features.check< position >() ) {
-=======
     max_term_freq_ = std::max(++p.freq, max_term_freq_);
     if (features.check<position >() ) {
->>>>>>> d3c446156ca19df3d06004e8511ac6e768e127a9
       ++it;
       write_prox(p, it, pos_ - p.pos, pay);
       if (features.check< offset >()) {
@@ -717,16 +712,11 @@ void fields_data::flush(field_writer& fw, flush_state& state) {
   state.fields_count = fields_.size();
 
   {
-<<<<<<< HEAD
-    static struct less_t {
-      bool operator() (const field_data* lhs, const field_data* rhs) const {
-=======
     struct less_t {
       bool operator()(
           const field_data* lhs,
           const field_data* rhs
       ) const NOEXCEPT {
->>>>>>> d3c446156ca19df3d06004e8511ac6e768e127a9
         return lhs->meta().name < rhs->meta().name;
       };
     };
