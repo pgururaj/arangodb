@@ -405,7 +405,7 @@ bool TRI_vocbase_t::unregisterView(arangodb::LogicalView const& view) {
   auto itr = _dataSourceById.find(view.id());
 
   if (itr == _dataSourceById.end()
-      || itr->second->category() != arangodb::LogicalView::category()) {
+      || itr->second->category() != LogicalView::category()) {
     return true; // no such view
   }
 
@@ -1017,7 +1017,7 @@ void TRI_vocbase_t::inventory(
                 idx->type() != arangodb::Index::TRI_IDX_TYPE_IRESEARCH_LINK);
       });
       result.add("parameters", VPackValue(VPackValueType::Object));
-      collection->toVelocyPackIgnore(result, { "objectId", "path", "statusString" }, true, false);
+      collection->toVelocyPackIgnore(result, { "objectId", "path", "statusString", "indexes" }, true, false);
       result.close();
 
       result.close();
@@ -1401,7 +1401,7 @@ arangodb::Result TRI_vocbase_t::renameView(
   auto itr1 = _dataSourceByName.find(oldName);
 
   if (itr1 == _dataSourceByName.end()
-      || arangodb::LogicalView::category() != itr1->second->category()) {
+      || LogicalView::category() != itr1->second->category()) {
     return TRI_ERROR_ARANGO_DATA_SOURCE_NOT_FOUND;
   }
 
@@ -1521,7 +1521,7 @@ arangodb::Result TRI_vocbase_t::renameCollection(
   auto itr1 = _dataSourceByName.find(oldName);
 
   if (itr1 == _dataSourceByName.end()
-      || arangodb::LogicalCollection::category() != itr1->second->category()) {
+      || LogicalCollection::category() != itr1->second->category()) {
     return TRI_ERROR_ARANGO_DATA_SOURCE_NOT_FOUND;
   }
 

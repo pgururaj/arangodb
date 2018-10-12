@@ -410,9 +410,13 @@ option(HOMEBREW
 if (WIN32)
   set(WINDOWS TRUE)
   set(MSBUILD TRUE)
-  add_definitions(-D_USE_MATH_DEFINES -DNOMINMAX)
+  add_definitions(-DINCL_EXTRA_HTON_FUNCTIONS)
+  add_definitions(-DNOMINMAX)
+  add_definitions(-DPSAPI_VERSION=1)
   add_definitions(-D_HAS_AUTO_PTR_ETC=1) #autopointer
   add_definitions(-D_HAS_TR1_NAMESPACE=1) #tr1
+  add_definitions(-D_USE_MATH_DEFINES)
+  add_definitions(-D_WIN32_WINNT=_WIN32_WINNT_VISTA)
 elseif (UNIX AND NOT APPLE)
   if(CMAKE_SYSTEM_NAME MATCHES ".*Linux")
     set(LINUX TRUE)
@@ -561,6 +565,16 @@ if (CMAKE_COMPILER_IS_GNUCC OR APPLE)
   set(BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -std=c++17")
 endif ()
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  if (MSVC_VERSION VERSION_LESS 1915)
+    message(FATAL_ERROR "ArangoDB Requires at least MSVC 2017 update 15.8!")
+  endif()
+
+  # MSVC2018.1 - MSVC2018.7 does not correctly support alignas()
+  # MSVC2018.8 requires the following define
+  add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)
+endif()
+
 if (CMAKE_COMPILER_IS_CLANG)
   if (APPLE)
     set(BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -stdlib=libc++")
@@ -591,7 +605,7 @@ if (MSVC)
   # http://lists.boost.org/boost-users/2016/04/85968.php
   add_definitions("-D_ENABLE_ATOMIC_ALIGNMENT_FIX")
 
-  set(MSVC_LIBS Shlwapi.lib;crypt32.lib;WINMM.LIB;Ws2_32.lib)
+  set(MSVC_LIBS Shlwapi.lib;crypt32.lib;WINMM.LIB;Ws2_32.lib;Psapi.lib)
 
   set(CMAKE_EXE_LINKER_FLAGS
     "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:CONSOLE /SAFESEH:NO /MACHINE:x64 /ignore:4099 ${BASE_LD_FLAGS}"

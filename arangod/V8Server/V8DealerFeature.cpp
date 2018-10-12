@@ -25,10 +25,7 @@
 #include <regex>
 #include <thread>
 
-#include "3rdParty/valgrind/valgrind.h"
-
 #include "Actions/actions.h"
-#include "ApplicationFeatures/MaxMapCountFeature.h"
 #include "ApplicationFeatures/V8PlatformFeature.h"
 #include "Basics/ArangoGlobalContext.h"
 #include "Basics/ConditionLocker.h"
@@ -893,9 +890,7 @@ V8Context* V8DealerFeature::enterContext(TRI_vocbase_t* vocbase,
       bool const contextLimitNotExceeded = (_contexts.size() + _nrInflightContexts < _nrMaxContexts);
 
       if (contextLimitNotExceeded &&
-          _dynamicContextCreationBlockers == 0 &&
-          !MaxMapCountFeature::isNearMaxMappings()) {
-
+          _dynamicContextCreationBlockers == 0) {
         ++_nrInflightContexts;
 
         TRI_ASSERT(guard.isLocked());
@@ -1531,22 +1526,7 @@ void V8DealerFeature::shutdownContext(V8Context* context) {
         action->visit(isolate);
       });
 
-      double availableTime = 30.0;
-
-      if (RUNNING_ON_VALGRIND) {
-        // running under Valgrind
-        availableTime *= 10;
-        int tries = 0;
-
-        while (tries++ < 10 &&
-               TRI_RunGarbageCollectionV8(isolate, availableTime)) {
-          if (tries > 3) {
-            LOG_TOPIC(WARN, arangodb::Logger::V8) << "waiting for garbage v8 collection to end";
-          }
-        }
-      } else {
-        TRI_RunGarbageCollectionV8(isolate, availableTime);
-      }
+      TRI_RunGarbageCollectionV8(isolate, 30.0);
 
       TRI_GET_GLOBALS();
 

@@ -230,8 +230,8 @@ void ClusterInfo::cleanup() {
   if (theInstance == nullptr) {
     return;
   }
-  
-  MUTEX_LOCKER(mutexLocker, theInstance->_planProt.mutex);  
+
+  MUTEX_LOCKER(mutexLocker, theInstance->_planProt.mutex);
 
   TRI_ASSERT(theInstance->_newPlannedViews.empty()); // only non-empty during loadPlan()
   theInstance->_plannedViews.clear();
@@ -1009,11 +1009,11 @@ void ClusterInfo::loadCurrent() {
     return;
   }
 
-  LOG_TOPIC(ERR, Logger::CLUSTER) << "Error while loading " << prefixCurrent
-                                  << " httpCode: " << result.httpCode()
-                                  << " errorCode: " << result.errorCode()
-                                  << " errorMessage: " << result.errorMessage()
-                                  << " body: " << result.body();
+  LOG_TOPIC(DEBUG, Logger::CLUSTER) << "Error while loading " << prefixCurrent
+                                    << " httpCode: " << result.httpCode()
+                                    << " errorCode: " << result.errorCode()
+                                    << " errorMessage: " << result.errorMessage()
+                                    << " body: " << result.body();
 }
 
 /// @brief ask about a collection
@@ -1561,16 +1561,29 @@ int ClusterInfo::createCollectionCoordinator(std::string const& databaseName,
   {
     // check if a collection with the same name is already planned
     loadPlan();
-
     READ_LOCKER(readLocker, _planProt.lock);
-    AllCollections::const_iterator it = _plannedCollections.find(databaseName);
-    if (it != _plannedCollections.end()) {
-      DatabaseCollections::const_iterator it2 = (*it).second.find(name);
+    {
+      AllCollections::const_iterator it = _plannedCollections.find(databaseName);
+      if (it != _plannedCollections.end()) {
+        DatabaseCollections::const_iterator it2 = (*it).second.find(name);
 
-      if (it2 != (*it).second.end()) {
-        // collection already exists!
-        events::CreateCollection(name, TRI_ERROR_ARANGO_DUPLICATE_NAME);
-        return TRI_ERROR_ARANGO_DUPLICATE_NAME;
+        if (it2 != (*it).second.end()) {
+          // collection already exists!
+          events::CreateCollection(name, TRI_ERROR_ARANGO_DUPLICATE_NAME);
+          return TRI_ERROR_ARANGO_DUPLICATE_NAME;
+        }
+      }
+    } {
+      // check against planned views as well
+      AllViews::const_iterator it = _plannedViews.find(databaseName);
+      if (it != _plannedViews.end()) {
+        DatabaseViews::const_iterator it2 = (*it).second.find(name);
+
+        if (it2 != (*it).second.end()) {
+          // view already exists!
+          events::CreateView(name, TRI_ERROR_ARANGO_DUPLICATE_NAME);
+          return TRI_ERROR_ARANGO_DUPLICATE_NAME;
+        }
       }
     }
   }
@@ -2073,17 +2086,29 @@ int ClusterInfo::createViewCoordinator(
   {
     // check if a view with the same name is already planned
     loadPlan();
-
     READ_LOCKER(readLocker, _planProt.lock);
-    AllViews::const_iterator it = _plannedViews.find(databaseName);
+    {
+      AllViews::const_iterator it = _plannedViews.find(databaseName);
+      if (it != _plannedViews.end()) {
+        DatabaseViews::const_iterator it2 = (*it).second.find(name);
 
-    if (it != _plannedViews.end()) {
-      DatabaseViews::const_iterator it2 = (*it).second.find(name);
+        if (it2 != (*it).second.end()) {
+          // view already exists!
+          events::CreateView(name, TRI_ERROR_ARANGO_DUPLICATE_NAME);
+          return TRI_ERROR_ARANGO_DUPLICATE_NAME;
+        }
+      }
+    } {
+      // check against planned collections as well
+      AllCollections::const_iterator it = _plannedCollections.find(databaseName);
+      if (it != _plannedCollections.end()) {
+        DatabaseCollections::const_iterator it2 = (*it).second.find(name);
 
-      if (it2 != (*it).second.end()) {
-        // view already exists!
-        events::CreateView(name, TRI_ERROR_ARANGO_DUPLICATE_NAME);
-        return TRI_ERROR_ARANGO_DUPLICATE_NAME;
+        if (it2 != (*it).second.end()) {
+          // collection already exists!
+          events::CreateCollection(name, TRI_ERROR_ARANGO_DUPLICATE_NAME);
+          return TRI_ERROR_ARANGO_DUPLICATE_NAME;
+        }
       }
     }
   }
@@ -2232,7 +2257,7 @@ Result ClusterInfo::setViewPropertiesCoordinator(
     return { TRI_ERROR_ARANGO_DATA_SOURCE_NOT_FOUND };
   }
 
-  auto const view = res.slice()[0].get(
+  auto const view = res.slice()[0].get<std::string>(
     { AgencyCommManager::path(), "Plan", "Views", databaseName, viewID }
   );
 
@@ -3172,11 +3197,11 @@ std::string ClusterInfo::getServerAdvertisedEndpoint(ServerID const& serverID) {
 
       // _serversAliases is a map-type <Alias, ServerID>
       auto ita = _serverAliases.find(serverID_);
-      
+
       if (ita != _serverAliases.end()) {
         serverID_ = (*ita).second;
       }
-      
+
       // _serversAliases is a map-type <ServerID, std::string>
       auto it = _serverAdvertisedEndpoints.find(serverID_);
       if (it != _serverAdvertisedEndpoints.end()) {
@@ -3307,23 +3332,18 @@ void ClusterInfo::loadCurrentMappings() {
 
     if (mappings.isObject()) {
       decltype(_coordinatorIdMap) newCoordinatorIdMap;
-      decltype(_dbserverIdMap) newDBServerIdMap;
-      decltype(_nameMap) newNameMap;
 
       for (auto const& mapping : VPackObjectIterator(mappings)) {
         ServerID fullId = mapping.key.copyString();
         auto mapObject = mapping.value;
         if (mapObject.isObject()) {
           ServerShortName shortName = mapObject.get("ShortName").copyString();
-          newNameMap.emplace(shortName, fullId);
 
           ServerShortID shortId = mapObject.get("TransactionID").getNumericValue<ServerShortID>();
           static std::string const expectedPrefix{"Coordinator"};
           if (shortName.size() > expectedPrefix.size() &&
               shortName.substr(0, expectedPrefix.size()) == expectedPrefix) {
             newCoordinatorIdMap.emplace(shortId, fullId);
-          } else {
-            newDBServerIdMap.emplace(shortId, fullId);
           }
         }
       }
@@ -3331,9 +3351,7 @@ void ClusterInfo::loadCurrentMappings() {
       // Now set the new value:
       {
         WRITE_LOCKER(writeLocker, _mappingsProt.lock);
-        _nameMap.swap(newNameMap);
         _coordinatorIdMap.swap(newCoordinatorIdMap);
-        _dbserverIdMap.swap(newDBServerIdMap);
         _mappingsProt.doneVersion = storedVersion;
         _mappingsProt.isValid = true;
       }
@@ -3588,50 +3606,6 @@ ServerID ClusterInfo::getCoordinatorByShortID(ServerShortID shortId) {
 
   auto it = _coordinatorIdMap.find(shortId);
   if (it != _coordinatorIdMap.end()) {
-    result = it->second;
-  }
-
-  return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief lookup full dbserver ID from short ID
-////////////////////////////////////////////////////////////////////////////////
-
-ServerID ClusterInfo::getDBServerByShortID(ServerShortID shortId) {
-  ServerID result;
-
-  if (!_mappingsProt.isValid) {
-    loadCurrentMappings();
-  }
-
-  // return a consistent state of servers
-  READ_LOCKER(readLocker, _mappingsProt.lock);
-
-  auto it = _dbserverIdMap.find(shortId);
-  if (it != _dbserverIdMap.end()) {
-    result = it->second;
-  }
-
-  return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief lookup full server ID from short name
-////////////////////////////////////////////////////////////////////////////////
-
-ServerID ClusterInfo::getServerByShortName(ServerShortName const& shortName) {
-  ServerID result;
-
-  if (!_mappingsProt.isValid) {
-    loadCurrentMappings();
-  }
-
-  // return a consistent state of servers
-  READ_LOCKER(readLocker, _mappingsProt.lock);
-
-  auto it = _nameMap.find(shortName);
-  if (it != _nameMap.end()) {
     result = it->second;
   }
 
