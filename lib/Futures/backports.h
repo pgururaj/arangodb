@@ -60,7 +60,7 @@ std::function<R(Args ...)>,
 std::reference_wrapper<typename std::remove_reference<F>::type>
 >
 {};
-  
+
 //  mimic: std::invoke, C++17
 template <typename F, typename... Args>
 constexpr auto invoke(F&& f, Args&&... args) noexcept(noexcept(static_cast<F&&>(f)(static_cast<Args&&>(args)...)))
@@ -72,8 +72,8 @@ constexpr auto invoke(M(C::*d), Args&&... args)
 -> decltype(std::mem_fn(d)(static_cast<Args&&>(args)...)) {
   return std::mem_fn(d)(static_cast<Args&&>(args)...);
 }
-  
 #else
+using std::invoke;
 using in_place_t = std::in_place_t;
 inline constexpr in_place_t in_place{};
 
@@ -82,11 +82,6 @@ using is_invocable_r = std::is_invocable_r<R, FN, ArgTypes...>;
 
 template <class FN, class... ArgTypes>
 using is_invocable = std::is_invocable<FN, ArgTypes...>;
-
-template< class F, class... Args>
-auto invoke(F&& f, Args&&... args) noexcept -> decltype(std::invoke(f, args...)) {
-  return std::invoke(f, args...);
-}
 #endif
 
 }}
