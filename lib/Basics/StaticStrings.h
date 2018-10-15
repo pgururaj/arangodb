@@ -64,7 +64,6 @@ class StaticStrings {
   static std::string const IsSynchronousReplicationString;
   static std::string const Group;
   static std::string const Namespace;
-  static std::string const ReplaceExisting;
   static std::string const Prefix;
   static std::string const OverWrite;
 
@@ -128,6 +127,7 @@ class StaticStrings {
   static std::string const Etag;
   static std::string const Expect;
   static std::string const ExposedCorsHeaders;
+  static std::string const Frontend;
   static std::string const HLCHeader;
   static std::string const KeepAlive;
   static std::string const LeaderEndpoint;
@@ -135,7 +135,6 @@ class StaticStrings {
   static std::string const NoSniff;
   static std::string const Origin;
   static std::string const PotentialDirtyRead;
-  static std::string const Queue;
   static std::string const RequestForwardedTo;
   static std::string const ResponseCode;
   static std::string const Server;

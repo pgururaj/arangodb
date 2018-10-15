@@ -60,7 +60,6 @@ std::string const StaticStrings::IsSynchronousReplicationString(
 std::string const StaticStrings::Group("group");
 std::string const StaticStrings::Namespace("namespace");
 std::string const StaticStrings::Prefix("prefix");
-std::string const StaticStrings::ReplaceExisting("replaceExisting");
 std::string const StaticStrings::OverWrite("overwrite");
 
 // replication headers
@@ -139,6 +138,7 @@ std::string const StaticStrings::Expect("expect");
 std::string const StaticStrings::ExposedCorsHeaders(
     "etag, content-encoding, content-length, location, server, "
     "x-arango-errors, x-arango-async-id");
+std::string const StaticStrings::Frontend("x-arango-frontend");
 std::string const StaticStrings::HLCHeader("x-arango-hlc");
 std::string const StaticStrings::KeepAlive("Keep-Alive");
 std::string const StaticStrings::LeaderEndpoint("x-arango-endpoint");
@@ -146,7 +146,6 @@ std::string const StaticStrings::Location("location");
 std::string const StaticStrings::NoSniff("nosniff");
 std::string const StaticStrings::Origin("origin");
 std::string const StaticStrings::PotentialDirtyRead("x-arango-potential-dirty-read");
-std::string const StaticStrings::Queue("x-arango-queue");
 std::string const StaticStrings::RequestForwardedTo(
     "x-arango-request-forwarded-to");
 std::string const StaticStrings::ResponseCode("x-arango-response-code");

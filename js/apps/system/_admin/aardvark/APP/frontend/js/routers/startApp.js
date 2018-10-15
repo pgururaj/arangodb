@@ -10,6 +10,7 @@
       if (currentJwt) {
         jqxhr.setRequestHeader('Authorization', 'bearer ' + currentJwt);
       }
+      jqxhr.setRequestHeader('X-Arango-Frontend', 'true');
     });
 
     $.ajaxSetup({
