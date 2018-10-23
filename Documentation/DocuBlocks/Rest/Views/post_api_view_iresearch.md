@@ -21,7 +21,7 @@ of commit+consolidate), a lower value will cause a lot of disk space to be
 wasted.
 For the case where the consolidation policies rarely merge segments (i.e. few
 inserts/deletes), a higher value will impact performance without any added
-benefits.
+benefits.<br/>
 _Background:_
   With every "commit" or "consolidate" operation a new state of the view
   internal data-structures is created on disk.
@@ -39,7 +39,7 @@ commit, will cause the index not to account for them and memory usage would
 continue to grow.
 For the case where there are a few inserts/updates, a higher value will impact
 performance and waste disk space for each commit call without any added
-benefits.
+benefits.<br/>
 _Background:_
   For data retrieval ArangoSearch views follow the concept of
   "eventually-consistent", i.e. eventually all the data in ArangoDB will be
@@ -55,7 +55,7 @@ _Background:_
 
 @RESTSTRUCT{consolidationPolicy,post_api_view_props,object,optional,post_api_view_props_consolidation}
 The consolidation policy to apply for selecting which segments should be merged
-(default: {})
+(default: {})<br/>
 _Background:_
   With each ArangoDB transaction that inserts documents one or more
   ArangoSearch internal segments gets created.
