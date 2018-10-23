@@ -21,7 +21,7 @@ wasted.
 For the case where the consolidation policies rarely merge segments (i.e. few
 inserts/deletes), a higher value will impact performance without any added
 benefits.
-Background:
+_Background:_
   With every "commit" or "consolidate" operation a new state of the view
   internal data-structures is created on disk.
   Old states/snapshots are released once there are no longer any users
@@ -39,7 +39,7 @@ continue to grow.
 For the case where there are a few inserts/updates, a higher value will impact
 performance and waste disk space for each commit call without any added
 benefits.
-Background:
+_Background:_
   For data retrieval ArangoSearch views follow the concept of
   "eventually-consistent", i.e. eventually all the data in ArangoDB will be
   matched by corresponding query expressions.
@@ -55,7 +55,7 @@ Background:
 @RESTSTRUCT{consolidationPolicy,post_api_view_props,object,optional,post_api_view_props_consolidation}
 The consolidation policy to apply for selecting which segments should be merged
 (default: {})
-Background:
+_Background:_
   With each ArangoDB transaction that inserts documents one or more
   ArangoSearch internal segments gets created.
   Similarly for removed documents the segments that contain such documents
@@ -72,25 +72,24 @@ Background:
 The segment candidates for the "consolidation" operation are selected based
 upon several possible configurable formulas as defined by their types.
 The currently supported types are (default: "bytes_accum"):
-- *bytes*: consolidate if and only if ({threshold} range `[0.0, 1.0]`):
-  {threshold} > segment_bytes / (all_segment_bytes / number_of_segments)
+- *bytes*: consolidate if and only if (`{threshold}` range `[0.0, 1.0]`):
+  `{threshold} > segment_bytes / (all_segment_bytes / number_of_segments)`
   i.e. the candidate segment byte size is less that the average segment
-       byte size multiplied by the {threshold}
-- *bytes_accum*: consolidate if and only if ({threshold} range `[0.0, 1.0]`):
-  {threshold} > (segment_bytes + sum_of_merge_candidate_segment_bytes) / all_segment_bytes
+  byte size multiplied by the `{threshold}`
+- *bytes_accum*: consolidate if and only if (`{threshold}` range `[0.0, 1.0]`):
+  `{threshold} > (segment_bytes + sum_of_merge_candidate_segment_bytes) / all_segment_bytes`
   i.e. the sum of all candidate segment byte size is less than the total
-       segment byte size multiplied by the {threshold}
-- *count*: consolidate if and only if ({threshold} range `[0.0, 1.0]`):
-  {threshold} > segment_docs{valid} / (all_segment_docs{valid} / number_of_segments)
+  segment byte size multiplied by the `{threshold}`
+- *count*: consolidate if and only if (`{threshold}` range `[0.0, 1.0]`):
+  `{threshold} > segment_docs{valid} / (all_segment_docs{valid} / number_of_segments)`
   i.e. the candidate segment non-deleted document count is less that the
-       average segment non-deleted document count size multiplied by the
-       {threshold}
-- *fill*: consolidate if and only if ({threshold} range `[0.0, 1.0]`):
-  {threshold} > #segment_docs{valid} / (#segment_docs{valid} + number_of_segment_docs{removed})
+  average segment non-deleted document count size multiplied by the `{threshold}`
+- *fill*: consolidate if and only if (`{threshold}` range `[0.0, 1.0]`):
+  `{threshold} > #segment_docs{valid} / (#segment_docs{valid} + number_of_segment_docs{removed})`
   i.e. the candidate segment valid document count is less that the average
-       segment total document count multiplied by the {threshold}
+  segment total document count multiplied by the `{threshold}`
 - *tier*: consolidate based on segment byte size and live document count
-          as dicated by the customization attributes.
+  as dictated by the customization attributes.
 
 
 @RESTSTRUCT{links,post_api_view_props,object,optional,post_api_view_links}
