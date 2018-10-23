@@ -29,6 +29,7 @@ _Background:_
   However, the files for the released states/snapshots are left on disk, and
   only removed by "cleanup" operation.
 
+
 @RESTSTRUCT{consolidationIntervalMsec,post_api_view_props,integer,optional,uint64}
 Wait at least this many milliseconds between committing view data store
 changes and making documents visible to queries (default: 60000, to disable
@@ -68,7 +69,7 @@ _Background:_
   released once old segments are no longer used.
 
 
-@RESTSTRUCT{type,post_api_view_props_consolidations,string,optional,string}
+@RESTSTRUCT{type,post_api_view_props_consolidation,string,optional,string}
 The segment candidates for the "consolidation" operation are selected based
 upon several possible configurable formulas as defined by their types.
 The currently supported types are (default: "bytes_accum"):
