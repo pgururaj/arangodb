@@ -298,13 +298,6 @@ bool UpgradeTasks::updateUserModels(
   return true;
 }
 
-bool UpgradeTasks::createModules(
-    TRI_vocbase_t& vocbase,
-    arangodb::velocypack::Slice const& slice
-) {
-  return ::createSystemCollection(&vocbase, "_modules");
-}
-
 bool UpgradeTasks::setupAnalyzers(
     TRI_vocbase_t& vocbase,
     arangodb::velocypack::Slice const& slice

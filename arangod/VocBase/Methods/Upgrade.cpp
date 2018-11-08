@@ -230,11 +230,6 @@ void methods::Upgrade::registerTasks() {
           /*cluster*/ Flags::CLUSTER_NONE | Flags::CLUSTER_COORDINATOR_GLOBAL,
           /*database*/ DATABASE_UPGRADE,  // DATABASE_EXISTING
           &UpgradeTasks::updateUserModels);
-  addTask("createModules", "setup _modules collection",
-          /*system*/ Flags::DATABASE_ALL,
-          /*cluster*/ Flags::CLUSTER_NONE | Flags::CLUSTER_COORDINATOR_GLOBAL,
-          /*database*/ DATABASE_INIT | DATABASE_UPGRADE | DATABASE_EXISTING,
-          &UpgradeTasks::createModules);
   // FIXME simon: Determine whether this is still necessary
   addTask("setupAnalyzers", "setup _iresearch_analyzers collection",
           /*system*/ Flags::DATABASE_SYSTEM,
