@@ -144,34 +144,6 @@ exports.time = internal.time;
 exports.ArangoError = internal.ArangoError;
 
 // //////////////////////////////////////////////////////////////////////////////
-// / @brief defines a module
-// //////////////////////////////////////////////////////////////////////////////
-
-exports.defineModule = function(path, file) {
-  let content = fs.read(file);
-  let mc = internal.db._collection('_modules');
-
-  if (mc === null) {
-    const DEFAULT_REPLICATION_FACTOR_SYSTEM = internal.DEFAULT_REPLICATION_FACTOR_SYSTEM;
-    mc = internal.db._create('_modules', {
-      isSystem: true,
-      journalSize: 1024 * 1024,
-      replicationFactor: DEFAULT_REPLICATION_FACTOR_SYSTEM,
-      distributeShardsLike: '_graphs'
-    });
-  }
-
-  path = module.normalize(path);
-  let m = mc.firstExample({path: path});
-
-  if (m === null) {
-    mc.save({path: path, content: content});
-  } else {
-    mc.replace(m, {path: path, content: content});
-  }
-};
-
-// //////////////////////////////////////////////////////////////////////////////
 // / @brief normalizeURL
 // /
 // / If @FA{path} starts with "." or "..", then it is a relative path.
